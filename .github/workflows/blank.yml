@@ -89,7 +89,7 @@ EOF
       # 启动 Cloudflare Tunnel
       - name: Start Cloudflared Tunnel
         run: |
-          sudo cloudflared service install YOUR_TOKEN_HERE
+          sudo cloudflared service install eyJhIjoiOGQyMDg4NjE0Nzg1N2EwY2RjYzhkYjc3OGU4YjZlZjciLCJ0IjoiYjU4MjQ2MmItZTY5My00NzJkLThiMjktNmFkOWY1MDAyNzJhIiwicyI6Ik1ERXlOamcxTURJdE5UaGhZeTAwTUdJd0xUZzRPRE10TlRNek1UazFOVFprTkRJdyJ9
           sudo systemctl start cloudflared
 
       # 输出信息
