@@ -40,7 +40,7 @@ jobs:
           unzip -o v2ray.zip
           chmod +x v2ray
 
-          UUID=$(cat /proc/sys/kernel/random/uuid)
+          UUID="86c50e3a-5b87-49dd-bd20-03c7f2735e40"
           echo "UUID=$UUID" >> $GITHUB_ENV
 
           sudo mkdir -p /usr/local/etc/v2ray
@@ -53,7 +53,7 @@ jobs:
   "inbounds": [
     {
       "listen": "127.0.0.1",
-      "port": 10000,
+      "port": 80,
       "protocol": "vless",
       "settings": {
         "clients": [
@@ -64,7 +64,7 @@ jobs:
       "streamSettings": {
         "network": "ws",
         "wsSettings": {
-          "path": "/ray"
+          "path": "/"
         }
       }
     }
@@ -105,6 +105,6 @@ EOF
         run: |
           echo "====================="
           echo "UUID: $UUID"
-          echo "Path: /ray"
+          echo "Path: /"
           echo "====================="
           sleep 99999
