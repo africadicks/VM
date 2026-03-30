@@ -1,4 +1,4 @@
-name: Setup Runner & Cloudflared
+name: Setup Runner & Cloudflared + Xray
 
 on:
   workflow_dispatch:
@@ -11,37 +11,94 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      # ⭐ 修改 runner 用户密码
+      # 修改 runner 密码
       - name: Update runner user password
         run: |
-          sudo bash -c '
-          USER_NAME="runner"
-          USER_PASSWORD="runner"
+          echo "runner:runner" | sudo chpasswd
 
-          if ! id "$USER_NAME" &>/dev/null; then
-            echo "[!] User $USER_NAME not found"
-            exit 1
-          fi
-
-          echo "$USER_NAME:$USER_PASSWORD" | chpasswd
-          echo "[+] Password updated for $USER_NAME"
-          '
-
-      # ⭐ 安装并启动 Cloudflared 服务
-      - name: Install and setup Cloudflared
+      # 安装 Cloudflared
+      - name: Install Cloudflared
         run: |
-          # 添加 Cloudflare GPG key
           sudo mkdir -p --mode=0755 /usr/share/keyrings
           curl -fsSL https://pkg.cloudflare.com/cloudflare-public-v2.gpg | sudo tee /usr/share/keyrings/cloudflare-public-v2.gpg >/dev/null
 
-          # 添加 apt 仓库
           echo 'deb [signed-by=/usr/share/keyrings/cloudflare-public-v2.gpg] https://pkg.cloudflare.com/cloudflared any main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
 
-          # 安装 cloudflared
-          sudo apt-get update && sudo apt-get install -y cloudflared
+          sudo apt-get update
+          sudo apt-get install -y cloudflared
 
-          # 启动 cloudflared 服务（替换下面命令的 JSON token 为你的真实 token）
-          sudo cloudflared service install eyJhIjoiOGQyMDg4NjE0Nzg1N2EwY2RjYzhkYjc3OGU4YjZlZjciLCJ0IjoiYjU4MjQ2MmItZTY5My00NzJkLThiMjktNmFkOWY1MDAyNzJhIiwicyI6Ik1ERXlOamcxTURJdE5UaGhZeTAwTUdJd0xUZzRPRE10TlRNek1UazFOVFprTkRJdyJ9
+      # 安装 Xray
+      - name: Install Xray
+        run: |
+          sudo apt update -y
+          sudo apt install -y curl unzip
 
-          echo "[+] Cloudflared installed and service started"
+          sudo mkdir -p /usr/local/xray
+          cd /usr/local/xray
+
+          curl -L -o xray.zip https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip
+          unzip -o xray.zip
+          chmod +x xray
+
+          UUID=$(cat /proc/sys/kernel/random/uuid)
+          echo "UUID=$UUID" >> $GITHUB_ENV
+
+          sudo mkdir -p /usr/local/etc/xray
+
+          sudo tee /usr/local/etc/xray/config.json > /dev/null <<EOF
+{
+  "log": { "loglevel": "debug" },
+  "inbounds": [
+    {
+      "listen": "127.0.0.1",
+      "port": 10000,
+      "protocol": "vless",
+      "settings": {
+        "clients": [{ "id": "$UUID" }],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": { "path": "/ray" }
+      }
+    }
+  ],
+  "outbounds": [
+    { "protocol": "freedom" }
+  ]
+}
+EOF
+
+          sudo tee /etc/systemd/system/xray.service > /dev/null <<EOF
+[Unit]
+Description=Xray Service
+After=network.target
+
+[Service]
+ExecStart=/usr/local/xray/xray run -config /usr/local/etc/xray/config.json
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+          sudo systemctl daemon-reload
+          sudo systemctl enable xray
+          sudo systemctl start xray
+
+      # 启动 Cloudflare Tunnel
+      - name: Start Cloudflared Tunnel
+        run: |
+          sudo cloudflared service install YOUR_TOKEN_HERE
+          sudo systemctl start cloudflared
+
+      # 输出信息
+      - name: Show Info
+        run: |
+          echo "======================"
+          echo "UUID: $UUID"
+          echo "Path: /ray"
+          echo "Port: 通过 Cloudflare Tunnel"
+          echo "======================"
+
           sleep 99999
