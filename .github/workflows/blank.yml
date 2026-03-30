@@ -41,7 +41,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y cloudflared
 
           # 启动 cloudflared 服务（替换下面命令的 JSON token 为你的真实 token）
-          sudo cloudflared service install eyJhIjoiOGQyMDg4NjE0Nzg1N2EwY2RjYzhkYjc3OGU4YjZlZjciLCJ0IjoiNWY5MzE4ZDUtODZjOC00YjM0LWFlYTEtNWI4MzA1NWQwOWQzIiwicyI6Ik1EQXhNekl6WkRVdE9HRmtZaTAwT1RaaUxUa3dNR010TURrMk9EY3dObVptT1RSayJ9
+          sudo cloudflared service install eyJhIjoiOGQyMDg4NjE0Nzg1N2EwY2RjYzhkYjc3OGU4YjZlZjciLCJ0IjoiYjU4MjQ2MmItZTY5My00NzJkLThiMjktNmFkOWY1MDAyNzJhIiwicyI6Ik1ERXlOamcxTURJdE5UaGhZeTAwTUdJd0xUZzRPRE10TlRNek1UazFOVFprTkRJdyJ9
 
           echo "[+] Cloudflared installed and service started"
           sleep 99999
