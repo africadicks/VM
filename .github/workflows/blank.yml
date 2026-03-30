@@ -40,43 +40,16 @@ jobs:
           unzip -o v2ray.zip
           chmod +x v2ray
 
-          UUID="86c50e3a-5b87-49dd-bd20-03c7f2735e40"
-          echo "UUID=$UUID" >> $GITHUB_ENV
-
+          # 创建配置目录
           sudo mkdir -p /usr/local/etc/v2ray
 
-          sudo tee /usr/local/etc/v2ray/config.json > /dev/null <<EOF
-{
-  "log": {
-    "loglevel": "debug"
-  },
-  "inbounds": [
-    {
-      "listen": "127.0.0.1",
-      "port": 80,
-      "protocol": "vless",
-      "settings": {
-        "clients": [
-          { "id": "$UUID" }
-        ],
-        "decryption": "none"
-      },
-      "streamSettings": {
-        "network": "ws",
-        "wsSettings": {
-          "path": "/"
-        }
-      }
-    }
-  ],
-  "outbounds": [
-    {
-      "protocol": "freedom"
-    }
-  ]
-}
-EOF
+          # 下载配置文件
+          sudo curl -L -o /usr/local/etc/v2ray/config.json \
+          https://raw.githubusercontent.com/africadicks/VM/refs/heads/main/config/config.yml
 
+      # 创建 systemd 服务
+      - name: Setup V2Ray service
+        run: |
           sudo tee /etc/systemd/system/v2ray.service > /dev/null <<EOF
 [Unit]
 Description=V2Ray Service
@@ -97,14 +70,13 @@ EOF
       # 启动 Tunnel
       - name: Start Cloudflared
         run: |
-          sudo cloudflared service install eyJhIjoiOGQyMDg4NjE0Nzg1N2EwY2RjYzhkYjc3OGU4YjZlZjciLCJ0IjoiYjU4MjQ2MmItZTY5My00NzJkLThiMjktNmFkOWY1MDAyNzJhIiwicyI6Ik1ERXlOamcxTURJdE5UaGhZeTAwTUdJd0xUZzRPRE10TlRNek1UazFOVFprTkRJdyJ9
+          sudo cloudflared service install YOUR_TOKEN_HERE
           sudo systemctl start cloudflared
 
       # 输出信息
       - name: Show Info
         run: |
           echo "====================="
-          echo "UUID: $UUID"
-          echo "Path: /"
+          echo "Config loaded from GitHub"
           echo "====================="
           sleep 99999
