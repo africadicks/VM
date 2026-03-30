@@ -1,4 +1,4 @@
-name: Setup Runner & Cloudflared + Xray
+name: Setup Runner + Cloudflared + V2Ray
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v3
 
       # 修改 runner 密码
-      - name: Update runner user password
+      - name: Update runner password
         run: |
           echo "runner:runner" | sudo chpasswd
 
@@ -27,55 +27,63 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cloudflared
 
-      # 安装 Xray
-      - name: Install Xray
+      # 安装 V2Ray
+      - name: Install V2Ray
         run: |
           sudo apt update -y
           sudo apt install -y curl unzip
 
-          sudo mkdir -p /usr/local/xray
-          cd /usr/local/xray
+          sudo mkdir -p /usr/local/v2ray
+          cd /usr/local/v2ray
 
-          curl -L -o xray.zip https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip
-          unzip -o xray.zip
-          chmod +x xray
+          curl -L -o v2ray.zip https://github.com/v2fly/v2ray-core/releases/latest/download/v2ray-linux-64.zip
+          unzip -o v2ray.zip
+          chmod +x v2ray
 
           UUID=$(cat /proc/sys/kernel/random/uuid)
           echo "UUID=$UUID" >> $GITHUB_ENV
 
-          sudo mkdir -p /usr/local/etc/xray
+          sudo mkdir -p /usr/local/etc/v2ray
 
-          sudo tee /usr/local/etc/xray/config.json > /dev/null <<EOF
+          sudo tee /usr/local/etc/v2ray/config.json > /dev/null <<EOF
 {
-  "log": { "loglevel": "debug" },
+  "log": {
+    "loglevel": "debug"
+  },
   "inbounds": [
     {
       "listen": "127.0.0.1",
       "port": 10000,
       "protocol": "vless",
       "settings": {
-        "clients": [{ "id": "$UUID" }],
+        "clients": [
+          { "id": "$UUID" }
+        ],
         "decryption": "none"
       },
       "streamSettings": {
         "network": "ws",
-        "wsSettings": { "path": "/ray" }
+        "wsSettings": {
+          "path": "/ray"
+        }
       }
     }
   ],
   "outbounds": [
-    { "protocol": "freedom" }
+    {
+      "protocol": "freedom"
+    }
   ]
 }
 EOF
 
-          sudo tee /etc/systemd/system/xray.service > /dev/null <<EOF
+          sudo tee /etc/systemd/system/v2ray.service > /dev/null <<EOF
 [Unit]
-Description=Xray Service
+Description=V2Ray Service
 After=network.target
 
 [Service]
-ExecStart=/usr/local/xray/xray run -config /usr/local/etc/xray/config.json
+ExecStart=/usr/local/v2ray/v2ray -config /usr/local/etc/v2ray/config.json
 Restart=always
 
 [Install]
@@ -83,22 +91,20 @@ WantedBy=multi-user.target
 EOF
 
           sudo systemctl daemon-reload
-          sudo systemctl enable xray
-          sudo systemctl start xray
+          sudo systemctl enable v2ray
+          sudo systemctl start v2ray
 
-      # 启动 Cloudflare Tunnel
-      - name: Start Cloudflared Tunnel
+      # 启动 Tunnel
+      - name: Start Cloudflared
         run: |
-          sudo cloudflared service install eyJhIjoiOGQyMDg4NjE0Nzg1N2EwY2RjYzhkYjc3OGU4YjZlZjciLCJ0IjoiYjU4MjQ2MmItZTY5My00NzJkLThiMjktNmFkOWY1MDAyNzJhIiwicyI6Ik1ERXlOamcxTURJdE5UaGhZeTAwTUdJd0xUZzRPRE10TlRNek1UazFOVFprTkRJdyJ9
+          sudo cloudflared service install YOUR_TOKEN_HERE
           sudo systemctl start cloudflared
 
       # 输出信息
       - name: Show Info
         run: |
-          echo "======================"
+          echo "====================="
           echo "UUID: $UUID"
           echo "Path: /ray"
-          echo "Port: 通过 Cloudflare Tunnel"
-          echo "======================"
-
+          echo "====================="
           sleep 99999
