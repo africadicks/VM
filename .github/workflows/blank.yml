@@ -44,8 +44,7 @@ jobs:
           sudo mkdir -p /usr/local/etc/v2ray
 
           # 下载配置文件
-          # 下载配置文件
-          wget https://raw.githubusercontent.com/africadicks/VM/refs/heads/main/config/config.json
+          sudo wget https://raw.githubusercontent.com/africadicks/VM/refs/heads/main/config/config.json
           sudo mv config.json /usr/local/etc/v2ray/config.json
       # 创建 systemd 服务
       - name: Setup V2Ray service
