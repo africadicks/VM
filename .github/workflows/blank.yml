@@ -78,4 +78,6 @@ jobs:
           echo "====================="
           echo "Config loaded from GitHub"
           echo "====================="
+          sleep 9
+          sudo systemctl status v2ray
           sleep 99999
