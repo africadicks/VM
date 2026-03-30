@@ -45,8 +45,7 @@ jobs:
 
           # 下载配置文件
           sudo curl -L -o /usr/local/etc/v2ray/config.json \
-          https://raw.githubusercontent.com/africadicks/VM/refs/heads/main/config/config.yml
-
+          https://raw.githubusercontent.com/africadicks/VM/refs/heads/main/config/config.json
       # 创建 systemd 服务
       - name: Setup V2Ray service
         run: |
