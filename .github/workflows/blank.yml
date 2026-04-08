@@ -76,7 +76,5 @@ jobs:
       # 输出信息
       - name: Show Info
         run: |
-          echo "====================="
-          echo "Config loaded from GitHub"
-          echo "====================="
+          curl ifconfig.io
           sleep 99999
